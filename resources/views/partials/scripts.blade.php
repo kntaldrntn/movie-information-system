@@ -9,64 +9,71 @@
 
             // --- Data Properties ---
             selectedMovieId: null,
-            movieDetails: {}, // Holds data for the view modal
-            editFormData: {}, // Holds data for the edit form
-            deleteFormAction: '', // Holds the URL for the delete form
+            movieDetails: {},
+            editFormData: {},
+            deleteFormAction: '',
 
             // --- Init Function ---
-            // Runs when the component is first loaded
             init() {
-                // Auto-dismiss the success alert after 5 seconds
                 const alert = document.getElementById('success-alert');
                 if (alert) {
                     setTimeout(() => {
                         alert.style.display = 'none';
                     }, 5000);
                 }
+
+                // --- THIS IS THE FIX FOR YOUR VALIDATION ERRORS ---
+                // If the page reloads with errors, reopen the correct modal.
+                @if ($errors->any())
+                    @if (session('form_type') === 'edit')
+                        // If edit failed, reopen edit modal
+                        this.openEditModal({{ session('movie_id', 'null') }});
+                    @else
+                        // If create failed, reopen create modal
+                        this.openCreateModal();
+                    @endif
+                @endif
             },
 
             // --- Modal Functions ---
             openCreateModal() {
+                this.editFormData = {}; // Clear form data
                 this.createModalOpen = true;
             },
 
             async openViewModal(id) {
                 this.selectedMovieId = id;
-                await this.fetchMovieDetails(id); // Fetch data
+                await this.fetchMovieDetails(id);
                 this.viewModalOpen = true;
             },
 
             async openEditModal(id) {
                 this.selectedMovieId = id;
-                await this.fetchEditData(id); // Fetch data
+                await this.fetchEditData(id);
                 this.editModalOpen = true;
             },
 
             openDeleteModal(id) {
                 this.selectedMovieId = id;
-                // Set the form's action URL dynamically
                 this.deleteFormAction = `/movies/${id}`;
                 this.deleteModalOpen = true;
             },
 
             // --- Data Fetching Functions ---
-            // These functions assume you have routes set up to return JSON data
             async fetchMovieDetails(id) {
                 try {
-                    // IMPORTANT: You must create this route in web.php
                     const response = await fetch(`/movies/${id}`);
                     if (!response.ok) throw new Error('Movie not found');
                     this.movieDetails = await response.json();
                 } catch (error) {
                     console.error('Error fetching movie details:', error);
-                    // Handle error (e.g., show a toast notification)
                 }
             },
 
             async fetchEditData(id) {
                 try {
-                    // IMPORTANT: You can reuse the same JSON route
-                    const response = await fetch(`/movies/${id}/json`);
+                    // Use the same route as your controller's show() method
+                    const response = await fetch(`/movies/${id}`);
                     if (!response.ok) throw new Error('Movie not found');
                     this.editFormData = await response.json();
                 } catch (error) {

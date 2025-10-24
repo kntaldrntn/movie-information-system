@@ -41,7 +41,6 @@ class MovieController extends Controller
         }
 
         $validatedData['slug'] = Str::slug($validatedData['title']);
-
         Movie::create($validatedData);
 
         return redirect()->route('movies.index')->with('success', 'Movie added successfully!');
@@ -49,11 +48,10 @@ class MovieController extends Controller
 
     /**
      * Display the specified resource.
-     * Note: This is set up for AJAX requests to return JSON for the "View Details" modal.
      */
     public function show(Movie $movie)
     {
-        // Return movie data as JSON
+        // This is correct for the fetch requests
         return response()->json($movie);
     }
 
@@ -62,31 +60,40 @@ class MovieController extends Controller
      */
     public function update(Request $request, Movie $movie)
     {
-        $validatedData = $request->validate([
-            'title' => ['required','string','max:255', Rule::unique('movies')->ignore($movie->id)],
-            'synopsis' => 'required|string',
-            'genre' => 'required|string|max:100',
-            'director' => 'required|string|max:150',
-            'release_date' => 'required|date',
-            'rating' => 'required|integer|min:1|max:5',
-            'duration_minutes' => 'required|integer|min:1',
-            'poster_image' => 'nullable|image',
-        ]);
+        try {
+            $validatedData = $request->validate([
+                'title' => ['required','string','max:255', Rule::unique('movies')->ignore($movie->id)],
+                'synopsis' => 'required|string',
+                'genre' => 'required|string|max:100',
+                'director' => 'required|string|max:150',
+                'release_date' => 'required|date',
+                'rating' => 'required|integer|min:1|max:5',
+                'duration_minutes' => 'required|integer|min:1',
+                'poster_image' => 'nullable|image',
+            ]);
 
-        // Handle the poster image upload if it exists
-        if ($request->hasFile('poster_image')) {
-            if ($movie->poster_image) {
-                Storage::disk('public')->delete($movie->poster_image);
+            if ($request->hasFile('poster_image')) {
+                if ($movie->poster_image) {
+                    Storage::disk('public')->delete($movie->poster_image);
+                }
+                $imagePath = $request->file('poster_image')->store('posters', 'public');
+                $validatedData['poster_image'] = $imagePath;
             }
-            $imagePath = $request->file('poster_image')->store('posters', 'public');
-            $validatedData['poster_image'] = $imagePath;
+
+            $validatedData['slug'] = Str::slug($validatedData['title']);
+            $movie->update($validatedData);
+
+            return redirect()->route('movies.index')->with('success', 'Movie updated successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // --- THIS IS THE FIX ---
+            // If validation fails, redirect back with the form type and ID
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('form_type', 'edit') // Tell the script it was an edit form
+                ->with('movie_id', $movie->id); // Tell the script which movie
         }
-
-        $validatedData['slug'] = Str::slug($validatedData['title']);
-
-        $movie->update($validatedData);
-
-        return redirect()->route('movies.index')->with('success', 'Movie updated successfully!');
     }
 
     /**
@@ -97,9 +104,7 @@ class MovieController extends Controller
         if ($movie->poster_image) {
             Storage::disk('public')->delete($movie->poster_image);
         }
-
         $movie->delete();
-
         return redirect()->route('movies.index')->with('success', 'Movie deleted successfully.');
     }
 }

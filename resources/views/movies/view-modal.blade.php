@@ -20,22 +20,20 @@
              x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-             class="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-gray-800 shadow-xl rounded-2xl">
+             class="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
 
             <div class="flex justify-between items-center pb-3 border-b border-gray-700">
-                <h3 class="text-2xl font-bold text-white" x-text="movieDetails.title"></h3>
-                <button @click="viewModalOpen = false" class="text-gray-400 hover:text-white">&times;</button>
+                <h3 class="text-2xl font-bold text-gray-800" x-text="movieDetails.title"></h3>
+                <button @click="viewModalOpen = false" class="text-gray-400 hover:text-gray-800">&times;</button>
             </div>
 
             <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="md:col-span-1">
                     <img class="w-full rounded-lg shadow-lg" :src="movieDetails.poster_image ? '/storage/' + movieDetails.poster_image : 'https://placehold.co/300x450/374151/e5e7eb?text=Poster'" alt="Poster">
                 </div>
-                <div class="md:col-span-2 text-gray-300">
-                    <h4 class="text-lg font-semibold text-white mb-2">Description</h4>
+                <div class="md:col-span-2 text-gray-800">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Description</h4>
                     <p x-text="movieDetails.synopsis"></p>
-
-                    <h4 class="text-lg font-semibold text-white mt-4 mb-2">Details</h4>
                     <ul>
                         <li><strong>Genre:</strong> <span x-text="movieDetails.genre"></span></li>
                         <li><strong>Release Date:</strong> <span x-text="movieDetails.release_date"></span></li>
